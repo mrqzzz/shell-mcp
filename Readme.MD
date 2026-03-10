@@ -5,7 +5,7 @@ A Go-based **MCP (Model Context Protocol)** server that provides AI agents (like
 Unlike other tools that execute isolated commands (e.g., via `subprocess` or standard `exec`), this server utilizes **PTY (Pseudo-Terminal)**. This means the session stays alive between requests, allowing for complex scenarios such as SSH connections, directory navigation, and handling interactive prompts (like entering passwords).
 
 
-This MCP-server works well with "agent-go" https://github.com/mrqzzz/agent-go
+This MCP-server works well with **agent-go** https://github.com/mrqzzz/agent-go
 
 
 ## 🚀 Key Features
