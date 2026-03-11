@@ -223,6 +223,41 @@ func main() {
 		return mcp.NewToolResultText(output), nil
 	})
 
+	// Tool: Reset Terminal
+	toolReset := mcp.NewTool("terminal_reset",
+		mcp.WithDescription(
+			"Resets the terminal by terminating the current shell session and starting a fresh one. "+
+				"WARNING: This will destroy all state in the current session, including: "+
+				"1. The current working directory will be reset to the default. "+
+				"2. All environment variables set during the session will be lost. "+
+				"3. Any running background processes started in the shell will be terminated. "+
+				"4. All command history and buffered output will be cleared. "+
+				"Use this only when the terminal is in a broken or unrecoverable state (e.g., stuck process, corrupted session).",
+		),
+	)
+
+	s.AddTool(toolReset, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		session.mu.Lock()
+		if session.ptmx != nil {
+			session.ptmx.Close()
+		}
+		if session.cmd != nil && session.cmd.Process != nil {
+			session.cmd.Process.Kill()
+		}
+		session.active = false
+		session.mu.Unlock()
+
+		session.bufMu.Lock()
+		session.buffer.Reset()
+		session.bufMu.Unlock()
+
+		if err := session.startSession(); err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to reset terminal: %v", err)), nil
+		}
+
+		return mcp.NewToolResultText("Terminal has been reset. A new shell session is now active."), nil
+	})
+
 	if err := server.ServeStdio(s); err != nil {
 		fmt.Fprintf(os.Stderr, "Server error: %v\n", err)
 	}

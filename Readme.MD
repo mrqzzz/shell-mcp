@@ -69,7 +69,7 @@ Add the `shell-mcp` entry to your `mcpServers` list:
 
 ## 📖 Usage and Available Tools
 
-The AI will have access to two primary tools:
+The AI will have access to three primary tools:
 
 ### 1. `terminal_write`
 Executes a command or sends input to the active shell.
@@ -82,6 +82,15 @@ Executes a command or sends input to the active shell.
 ### 2. `terminal_read`
 Reads the current output buffer without sending any new commands.
 * **Usage:** Very useful if a previously executed command is taking a long time, or if the AI wants to check for new logs/asynchronous output without interrupting the process.
+
+### 3. `terminal_reset`
+Resets the terminal by terminating the current shell session and starting a fresh one.
+* **Usage:** Use when the terminal is in a broken or unrecoverable state (e.g., stuck process, corrupted session).
+* **Warning:** This destroys all state in the current session:
+    * The current working directory is reset to the default.
+    * All environment variables set during the session are lost.
+    * Any running background processes started in the shell are terminated.
+    * All command history and buffered output are cleared.
 
 ## 💡 Example: SSH Scenario
 
