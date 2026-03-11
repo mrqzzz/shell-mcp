@@ -64,9 +64,8 @@ func (s *ShellSession) startSession() error {
 		return fmt.Errorf("failed to start shell: %w", err)
 	}
 
-	// Set initial terminal size with wide columns to prevent line-wrapping
-	// from breaking long commands (e.g., splitting quoted strings)
-	_ = pty.Setsize(f, &pty.Winsize{Rows: 24, Cols: 10000, X: 0, Y: 0})
+	// Set initial terminal size (24 Rows, 80 Columns)
+	_ = pty.Setsize(f, &pty.Winsize{Rows: 24, Cols: 80, X: 0, Y: 0})
 
 	s.ptmx = f
 	s.cmd = c
