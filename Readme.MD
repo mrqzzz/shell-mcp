@@ -1,5 +1,17 @@
 # 🐚 MCP Shell Server (Go Implementation)
 
+[![Build and Release Binaries](https://github.com/mrqzzz/shell-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/mrqzzz/shell-mcp/actions/workflows/release.yml)
+
+## 📥 Download Latest Release
+
+| Platform | Architecture | Download |
+|----------|-------------|----------|
+| Linux | x86-64 (amd64) | [shell-mcp-linux-amd64](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-linux-amd64) |
+| Linux | ARM64 | [shell-mcp-linux-arm64](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-linux-arm64) |
+| macOS | Intel (x86-64) | [shell-mcp-macos-intel](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-macos-intel) |
+| macOS | Apple Silicon (ARM64) | [shell-mcp-macos-silicon](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-macos-silicon) |
+| Windows | x86-64 (amd64) | [shell-mcp-windows-amd64.exe](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-windows-amd64.exe) |
+
 A Go-based **MCP (Model Context Protocol)** server that provides AI agents (like Claude Desktop or Claude Code) with **real, persistent, and interactive** access to your system's terminal.
 
 Unlike other tools that execute isolated commands (e.g., via `subprocess` or standard `exec`), this server utilizes **PTY (Pseudo-Terminal)**. This means the session stays alive between requests, allowing for complex scenarios such as SSH connections, directory navigation, and handling interactive prompts (like entering passwords).
