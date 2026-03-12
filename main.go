@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -118,23 +120,100 @@ func (s *ShellSession) writeInput(command string) (string, error) {
 		}
 	}
 
+	isMultiline := strings.Count(command, "\n") > 0
+
 	// Add newline if missing to simulate pressing Enter
 	if len(command) == 0 || command[len(command)-1] != '\n' {
 		command += "\n"
 	}
 
-	// Write to PTY
-	s.mu.Lock()
-	_, err := s.ptmx.Write([]byte(command))
-	s.mu.Unlock()
-
-	if err != nil {
-		s.active = false
-		return "", fmt.Errorf("shell write error: %w", err)
+	// For multiline payloads, send as bracketed paste to reduce shell line-editor corruption.
+	if isMultiline {
+		trimmed := strings.TrimSuffix(command, "\n")
+		command = "\x1b[200~" + trimmed + "\x1b[201~\n"
 	}
 
-	// Wait half a second for the command to write output to the buffer
-	time.Sleep(500 * time.Millisecond)
+	// Write to PTY (handle partial writes to avoid truncating large multiline commands)
+	payload := []byte(command)
+	written := 0
+	chunkSize := len(payload)
+	chunkDelay := time.Duration(0)
+	if isMultiline {
+		chunkSize = 256
+		chunkDelay = 2 * time.Millisecond
+	}
+
+	s.mu.Lock()
+	for written < len(payload) {
+		end := written + chunkSize
+		if end > len(payload) {
+			end = len(payload)
+		}
+
+		for written < end {
+			n, err := s.ptmx.Write(payload[written:end])
+			if n > 0 {
+				written += n
+			}
+			if err != nil {
+				s.mu.Unlock()
+				s.active = false
+				return "", fmt.Errorf("shell write error: %w", err)
+			}
+			if n == 0 {
+				s.mu.Unlock()
+				s.active = false
+				return "", fmt.Errorf("shell write error: %w", io.ErrShortWrite)
+			}
+		}
+
+		if chunkDelay > 0 {
+			time.Sleep(chunkDelay)
+		}
+	}
+	s.mu.Unlock()
+
+	// Wait until terminal output becomes idle so large multiline inputs
+	// (e.g. heredocs) are fully consumed before we return control.
+	if isMultiline {
+		return s.readOutputWhenIdle(12*time.Second, 600*time.Millisecond)
+	}
+	return s.readOutputWhenIdle(4*time.Second, 300*time.Millisecond)
+}
+
+// readOutputWhenIdle collects output until either:
+// 1) no new output arrives for idleFor, or
+// 2) maxWait is reached.
+func (s *ShellSession) readOutputWhenIdle(maxWait time.Duration, idleFor time.Duration) (string, error) {
+	if maxWait <= 0 {
+		maxWait = 4 * time.Second
+	}
+	if idleFor <= 0 {
+		idleFor = 300 * time.Millisecond
+	}
+
+	deadline := time.Now().Add(maxWait)
+	lastLen := -1
+	lastChange := time.Now()
+
+	for {
+		s.bufMu.Lock()
+		currentLen := s.buffer.Len()
+		s.bufMu.Unlock()
+
+		if currentLen != lastLen {
+			lastLen = currentLen
+			lastChange = time.Now()
+		} else if time.Since(lastChange) >= idleFor {
+			break
+		}
+
+		if time.Now().After(deadline) {
+			break
+		}
+
+		time.Sleep(50 * time.Millisecond)
+	}
 
 	return s.readOutput()
 }
