@@ -11,6 +11,7 @@
 | macOS | Intel (x86-64) | [shell-mcp-macos-intel](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-macos-intel) |
 | macOS | Apple Silicon (ARM64) | [shell-mcp-macos-silicon](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-macos-silicon) |
 | Windows | x86-64 (amd64) | [shell-mcp-windows-amd64.exe](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-windows-amd64.exe) |
+| Windows | ARM64 | [shell-mcp-windows-arm64.exe](https://github.com/mrqzzz/shell-mcp/releases/latest/download/shell-mcp-windows-arm64.exe) |
 
 A Go-based **MCP (Model Context Protocol)** server that provides AI agents (like Claude Desktop or Claude Code) with **real, persistent, and interactive** access to your system's terminal.
 
