@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    name: Build ${{ matrix.asset_name }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,7 +33,6 @@ jobs:
           - goos: windows
             goarch: arm64
             asset_name: shell-mcp-windows-arm64.exe
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,8 +49,29 @@ jobs:
           CGO_ENABLED: "0"
         run: go build -ldflags="-s -w" -o ${{ matrix.asset_name }} main.go
 
-      - name: Upload release asset
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+          merge-multiple: true
+
+      - name: Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: ${{ matrix.asset_name }}
+          files: ./binaries/*
