@@ -1,3 +1,4 @@
+
 # 🐚 MCP Shell Server (Go Implementation)
 
 [![Build and Release Binaries](https://github.com/mrqzzz/shell-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/mrqzzz/shell-mcp/actions/workflows/release.yml)
